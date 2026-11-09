@@ -1,36 +1,20 @@
-# ============================================================
-#  DIODE I-V CHARACTERISTIC ANALYSER
-#  Basic version: only input(), numpy and matplotlib. No functions.
-#
-#  Shockley diode equation:
-#      I = Is * (exp(V / (n * Vt)) - 1)
-#  where
-#      Is = reverse saturation current
-#      n  = ideality factor
-#      Vt = k*T/q (thermal voltage)
-#
-#  Temperature effect on Is (simple model):
-#      Is(T) = Is300 * (T/300)^3 * exp( Eg*q/(n*k) * (1/300 - 1/T) )
-# ============================================================
-
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Physical constants
-k = 1.380649e-23      # Boltzmann constant (J/K)
-q = 1.602176634e-19   # Charge of an electron (C)
+k = 1.380649e-23      
+q = 1.602176634e-19   
 
 print("=" * 55)
 print("       DIODE I-V CHARACTERISTIC ANALYSER")
 print("=" * 55)
 
-# ---------------- INPUTS ----------------
+
 choice = int(input("Enter 1 for Silicon diode or 2 for Germanium diode: "))
 
 if choice == 1:
     name = "Silicon"
-    Is300 = 1e-12      # typical saturation current at 300 K (A)
-    Eg = 1.12          # band gap in eV
+    Is300 = 1e-12      
+    Eg = 1.12          
 elif choice == 2:
     name = "Germanium"
     Is300 = 1e-6
@@ -57,28 +41,27 @@ if Vtest > 5 or Vf_max > 5:
     print("Error: forward voltages must be 5 V or less (the exponential becomes too large).")
     raise SystemExit
 
-# ---------------- MAIN CALCULATION ----------------
+
 TK = T + 273.15
 Vt = k * TK / q
 
-# Saturation current at the chosen temperature
+
 Is = Is300 * (TK / 300) ** 3 * np.exp((Eg * q / (n * k)) * (1 / 300 - 1 / TK))
 
-# Forward bias (start slightly above 0 so the log graph works)
+
 Vf = np.linspace(0.001, Vf_max, 500)
 If = Is * (np.exp(Vf / (n * Vt)) - 1)
 
-# Reverse bias (voltage is negative)
+
 Vr = np.linspace(0, Vr_max, 500)
 Ir = Is * (np.exp(-Vr / (n * Vt)) - 1)
 
-# Current at the test voltage
+
 I_test = Is * (np.exp(Vtest / (n * Vt)) - 1)
 
-# Voltage at which the forward current reaches 1 mA (a simple "knee" voltage)
+
 V_knee = n * Vt * np.log(1e-3 / Is + 1)
 
-# ---------------- PRINT RESULTS ----------------
 print()
 print("=" * 55)
 print("RESULTS for", name, "diode at", T, "C")
@@ -92,13 +75,13 @@ print("   Current                      : %.4e A" % I_test)
 
 if I_test != 0:
     R_static = Vtest / I_test
-    # slope dI/dV of the Shockley equation, written so it never becomes 0/0
+    
     slope = Is / (n * Vt) * np.exp(Vtest / (n * Vt))
     r_dynamic = 1 / slope
     print("   Static resistance (V/I)      : %.4g ohm" % R_static)
     print("   Dynamic resistance (dV/dI)   : %.4g ohm" % r_dynamic)
 
-# ---------------- GRAPH 1: FORWARD AND REVERSE ----------------
+
 plt.figure("Graph 1 - Diode characteristics", figsize=(14, 4.5))
 
 plt.subplot(1, 3, 1)
@@ -108,7 +91,7 @@ if Vtest > 0 and Vtest <= Vf_max:
     plt.plot(Vtest, I_test * 1000, "ro", label="V = %.2f V" % Vtest)
     plt.legend()
     if I_test * 1000 > 50:
-        ymax = I_test * 1000 * 1.2    # make room so the red dot is visible
+        ymax = I_test * 1000 * 1.2    
 plt.ylim(0, ymax)
 plt.xlabel("Forward voltage (V)")
 plt.ylabel("Current (mA)")
@@ -131,7 +114,7 @@ plt.grid(True)
 
 plt.tight_layout()
 
-# ---------------- COMPARISON 1: SILICON vs GERMANIUM ----------------
+
 names = ["Silicon", "Germanium"]
 Is_list = [1e-12, 1e-6]
 Eg_list = [1.12, 0.66]
@@ -161,7 +144,7 @@ plt.grid(True)
 plt.legend()
 plt.tight_layout()
 
-# ---------------- COMPARISON 2: DIFFERENT TEMPERATURES ----------------
+
 print()
 print("-" * 55)
 print("EFFECT OF TEMPERATURE on the %s diode" % name)
